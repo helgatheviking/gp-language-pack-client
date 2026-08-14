@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-namespace HelgaTheViking\GPLanguagePack\Client;
+namespace HelgaTheViking\GPLanguagePack;
 
 if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 
