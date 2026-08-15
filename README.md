@@ -19,8 +19,13 @@ composer require helgatheviking/gp-language-pack-client
 
 ## Usage
 
+Make sure you require the Composer autoloader in your project:
+
 ```php
 <?php
+
+// Require the Composer autoloader
+require_once __DIR__ . '/vendor/autoload.php';
 
 use HelgaTheViking\GPLanguagePack\Client;
 
@@ -37,3 +42,4 @@ new Client(
 - The client only surfaces updates for locales available on the site.
 - Responses are cached to reduce remote requests.
 - Updates are injected into native WordPress translation update flows.
+- To prevent dependency conflicts in the global WordPress environment, it is highly recommended to use [Strauss](https://github.com/coenjacobs/strauss) to prefix the library's namespace.
