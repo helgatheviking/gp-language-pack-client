@@ -1,6 +1,6 @@
 # GP Language Pack Client
 
-Client integration package for GP Language Pack Server.
+Client integration package for [GP Language Pack Server](https://github.com/helgatheviking/gp-language-pack-server/).
 
 This library hooks into WordPress translation update checks and adds language pack updates from a custom GlotPress server.
 
