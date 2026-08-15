@@ -1,6 +1,6 @@
 {
   "name": "helgatheviking/gp-language-pack-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Client integration package for GP Language Packs. Hooks into WordPress updates to pull translations from a custom GlotPress server.",
   "type": "library",
   "license": "GPL-3.0-or-later",
