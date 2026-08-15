@@ -161,7 +161,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 			}
 
 			$api_url = sprintf(
-				'%s/wp-json/gp-language-packs/v1/api/%s',
+				'%s/wp-json/gp-language-pack-server/v1/api/%s',
 				$this->server_url,
 				urlencode( $this->project_slug )
 			);
