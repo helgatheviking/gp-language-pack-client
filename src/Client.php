@@ -56,6 +56,9 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 			} else {
 				add_filter( 'pre_set_site_transient_update_themes', array( $this, 'inject_translation_updates' ) );
 			}
+
+			add_action( 'delete_site_transient_update_plugins', array( $this, 'clear_cached_translations' ) );
+			add_action( 'delete_site_transient_update_themes', array( $this, 'clear_cached_translations' ) );
 		}
 
 		/**
@@ -183,6 +186,16 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 			set_transient( $transient_key, $data, 12 * HOUR_IN_SECONDS );
 
 			return $data;
+		}
+
+		/**
+		 * Clears the cached translation API responses.
+		 *
+		 * @return void
+		 */
+		public function clear_cached_translations(): void {
+			$transient_key = 'gp_lp_cache_' . md5( $this->server_url . $this->project_slug );
+			delete_transient( $transient_key );
 		}
 	}
 }
