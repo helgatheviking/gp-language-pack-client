@@ -5,7 +5,7 @@
  * PSR-4 autoload-compatible client integration class for premium themes and plugins.
  *
  * @package GP_Language_Pack/Client
- * @version 1.0.0
+ * @version 1.0.2
  */
 
 namespace HelgaTheViking\GPLanguagePack;
@@ -14,6 +14,8 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 
 	/**
 	 * Client class to inject translation updates.
+	 *
+	 * @version 1.0.2
 	 */
 	class Client {
 
@@ -38,6 +40,11 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 		private string $type;
 
 		/**
+		 * Option holding the md5 of each .mo file this client installed, keyed by "{type}:{textdomain}:{locale}".
+		 */
+		private const HASH_OPTION = 'gp_lp_installed_hashes';
+
+		/**
 		 * Constructor.
 		 *
 		 * @param string $server_url   E.g., "https://my-glotpress-site.com"
@@ -57,6 +64,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 				add_filter( 'pre_set_site_transient_update_themes', array( $this, 'inject_translation_updates' ) );
 			}
 
+			add_action( 'upgrader_process_complete', array( $this, 'record_installed_hashes' ), 10, 2 );
 			add_action( 'delete_site_transient_update_plugins', array( $this, 'clear_cached_translations' ) );
 			add_action( 'delete_site_transient_update_themes', array( $this, 'clear_cached_translations' ) );
 		}
@@ -105,6 +113,9 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 
 				if ( ! file_exists( $mo_file ) ) {
 					$needs_update = true;
+				} elseif ( $this->is_locally_modified( $mo_file, $locale ) ) {
+					// The file no longer matches what we installed, so someone edited it. Leave it alone.
+					continue;
 				} else {
 					$local_mtime  = filemtime( $mo_file );
 					$remote_mtime = strtotime( $data['updated'] );
@@ -148,6 +159,77 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 			}
 
 			return $transient;
+		}
+
+		/**
+		 * Whether the .mo file differs from the one this client last installed.
+		 *
+		 * Returns false when we have no record (e.g. the file predates this check),
+		 * in which case the caller falls back to comparing modification times.
+		 *
+		 * @param string $mo_file Absolute path to the installed .mo file.
+		 * @param string $locale
+		 * @return bool
+		 */
+		private function is_locally_modified( string $mo_file, string $locale ): bool {
+			$hashes = get_option( self::HASH_OPTION, array() );
+			$key    = $this->hash_key( $locale );
+
+			if ( ! is_array( $hashes ) || empty( $hashes[ $key ] ) ) {
+				return false;
+			}
+
+			return md5_file( $mo_file ) !== $hashes[ $key ];
+		}
+
+		/**
+		 * Stores the md5 of every .mo file installed for our text domain by a language update.
+		 *
+		 * @param \WP_Upgrader $upgrader Unused.
+		 * @param array        $options  Update details from core.
+		 * @return void
+		 */
+		public function record_installed_hashes( $upgrader, $options ): void {
+			if ( ! is_array( $options ) || 'translation' !== ( $options['type'] ?? '' ) || empty( $options['translations'] ) ) {
+				return;
+			}
+
+			$lang_dir = ( 'plugin' === $this->type ) ? WP_LANG_DIR . '/plugins/' : WP_LANG_DIR . '/themes/';
+			$hashes   = get_option( self::HASH_OPTION, array() );
+			$hashes   = is_array( $hashes ) ? $hashes : array();
+			$changed  = false;
+
+			foreach ( $options['translations'] as $translation ) {
+				if ( ( $translation['type'] ?? '' ) !== $this->type || ( $translation['slug'] ?? '' ) !== $this->textdomain || empty( $translation['language'] ) ) {
+					continue;
+				}
+
+				$mo_file = $lang_dir . $this->textdomain . '-' . $translation['language'] . '.mo';
+
+				if ( ! file_exists( $mo_file ) ) {
+					continue;
+				}
+
+				$key  = $this->hash_key( $translation['language'] );
+				$hash = md5_file( $mo_file );
+
+				if ( $hash && ( $hashes[ $key ] ?? '' ) !== $hash ) {
+					$hashes[ $key ] = $hash;
+					$changed        = true;
+				}
+			}
+
+			if ( $changed ) {
+				update_option( self::HASH_OPTION, $hashes, false );
+			}
+		}
+
+		/**
+		 * @param string $locale
+		 * @return string
+		 */
+		private function hash_key( string $locale ): string {
+			return $this->type . ':' . $this->textdomain . ':' . $locale;
 		}
 
 		/**
