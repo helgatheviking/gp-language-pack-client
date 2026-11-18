@@ -5,7 +5,7 @@
  * PSR-4 autoload-compatible client integration class for premium themes and plugins.
  *
  * @package GP_Language_Pack/Client
- * @version 1.0.2
+ * @version 1.0.3
  */
 
 namespace HelgaTheViking\GPLanguagePack;
@@ -15,7 +15,7 @@ if ( ! class_exists( __NAMESPACE__ . '\\Client' ) ) {
 	/**
 	 * Client class to inject translation updates.
 	 *
-	 * @version 1.0.2
+	 * @version 1.0.3
 	 */
 	class Client {
 
