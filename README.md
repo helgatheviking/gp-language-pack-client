@@ -6,7 +6,7 @@ This library hooks into WordPress translation update checks and adds language pa
 
 ## Requirements
 
-- PHP 8.0+
+- PHP 7.4+
 - WordPress (plugin or theme context)
 
 ## Install
